@@ -130,7 +130,7 @@ const HomeContent = () => {
 				});
 			},
 		}),
-		[selectedModel, selectedGroup, userId],
+		[selectedModel, selectedGroup, userId, t],
 	);
 
 	const {
@@ -355,7 +355,7 @@ const HomeContent = () => {
 
 			lastSubmittedQueryRef.current = timeDateQuestion;
 			setHasSubmitted(true);
-		}, []);
+		}, [timeDateQuestion]);
 
 		return (
 			<div className="mt-8 w-full">

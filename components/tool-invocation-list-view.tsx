@@ -628,9 +628,8 @@ const ToolInvocationListView = memo(
 											const isGoogleResult = place.source === "google";
 
 											return (
-												<T id="components.tool_invocation_list_view.9">
+												<T id="components.tool_invocation_list_view.9" key={place.id || index}>
 													<div
-														key={place.id || index}
 														className={cn(
 															"p-4",
 															index !== features.length - 1 &&

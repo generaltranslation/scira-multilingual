@@ -762,9 +762,8 @@ export const InteractiveStockChart = React.memo(
 															group.results
 																.slice(0, 8)
 																.map((news, newsIndex) => (
-																	<T id="components.interactive_stock_chart.5">
+																	<T id="components.interactive_stock_chart.5" key={`financial-${groupIndex}-${newsIndex}`}>
 																		<a
-																			key={`financial-${groupIndex}-${newsIndex}`}
 																			href={news.url}
 																			target="_blank"
 																			rel="noopener noreferrer"

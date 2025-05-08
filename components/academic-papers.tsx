@@ -47,7 +47,7 @@ const AcademicPapersCard = ({ results }: AcademicPapersProps) => {
 					<div className="flex overflow-x-auto gap-3 no-scrollbar hover:overflow-x-scroll pb-1">
 						<Var>
 							{results.map((paper: AcademicResult, index: number) => (
-								<T id="components.academic_papers.1">
+								<T id="components.academic_papers.1" key={paper.url || index}>
 									<motion.div
 										key={paper.url || index}
 										className="w-[360px] flex-none"

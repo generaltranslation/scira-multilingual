@@ -140,7 +140,7 @@ const groupTools = {
   ] as const,
   buddy: [] as const,
   academic: ['academic_search', 'code_interpreter', 'datetime'] as const,
-  youtube: ['youtube_search', 'datetime'] as const,
+  youtube: ['datetime'] as const,
   reddit: ['reddit_search', 'datetime'] as const,
   analysis: ['code_interpreter', 'stock_chart', 'currency_converter', 'datetime'] as const,
   chat: [] as const,

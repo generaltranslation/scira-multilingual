@@ -466,9 +466,8 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({
 			>
 				{Object.entries(groupedModels).map(
 					([category, categoryModels], categoryIndex) => (
-						<T id="components.ui.form_component.1">
+						<T id="components.ui.form_component.1" key={category}>
 							<div
-								key={category}
 								className={cn(
 									"pt-0.5 pb-0.5",
 									categoryIndex > 0
