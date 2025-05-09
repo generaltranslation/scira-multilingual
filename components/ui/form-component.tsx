@@ -30,6 +30,20 @@ import { useGT } from "gt-next/client";
 import { Plural, T, Var } from 'gt-next';
 import { useTranslatedGroupInfo, type SearchGroupId } from '../search-groups';
 
+interface ModelType {
+    value: string;
+    label: string;
+    icon: React.FC<any>;
+    iconClass: string;
+    description: string;
+    color: string;
+    vision: boolean;
+    reasoning: boolean;
+    experimental: boolean;
+    category: string;
+    pdf: boolean;
+}
+
 interface ModelSwitcherProps {
     selectedModel: string;
     setSelectedModel: (value: string) => void;
@@ -38,8 +52,9 @@ interface ModelSwitcherProps {
     attachments: Array<Attachment>;
     messages: Array<Message>;
     status: 'submitted' | 'streaming' | 'ready' | 'error';
-    onModelSelect?: (model: typeof models[0]) => void;
+    onModelSelect?: (model: ModelType) => void;
 }
+
 
 const XAIIcon = ({ className }: { className?: string }) => (
     <svg
@@ -151,6 +166,15 @@ const getColorClasses = (color: string, isSelected: boolean = false) => {
 
 
 const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelectedModel, className, showExperimentalModels, attachments, messages, status, onModelSelect }) => {
+	const t = useGT();
+
+	const models: ModelType[] = [
+		{ value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: t("xAI's most intelligent model"), color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
+		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
+	];
     const selectedModelData = models.find(model => model.value === selectedModel);
     const [isOpen, setIsOpen] = useState(false);
     const isProcessing = status === 'submitted' || status === 'streaming';
@@ -367,7 +391,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                             getCapabilityColors("vision")
                                                         )}>
                                                             <EyeIcon className="size-2.5" />
-                                                            <span>Vision</span>
+                                                            <span>{t("Vision")}</span>
                                                         </div>
                                                     )}
                                                     {model.reasoning && (
@@ -376,7 +400,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                             getCapabilityColors("reasoning")
                                                         )}>
                                                             <BrainCircuit className="size-2.5" />
-                                                            <span>Reasoning</span>
+                                                            <span>{t("Reasoning")}</span>
                                                         </div>
                                                     )}
                                                     {model.pdf && (
@@ -388,7 +412,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                                 <polyline points="14 2 14 8 20 8"></polyline>
                                                             </svg>
-                                                            <span>PDF</span>
+                                                            <span>{t("PDF")}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -972,6 +996,13 @@ const FormComponent: React.FC<FormComponentProps> = ({
     });
 	const t = useGT();
 	const translatedGroupInfo = useTranslatedGroupInfo();
+	const models = [
+		{ value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: t("xAI's most intelligent model"), color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
+		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
+	];
 
     const showSwitchNotification = (title: string, description: string, icon?: React.ReactNode, color?: string, type: 'model' | 'group' = 'model') => {
         // Clear any existing timeout to prevent conflicts
@@ -1042,7 +1073,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             group.id, // Use the group ID directly as the color code
             'group'   // Specify this is a group notification
         );
-    }, [setSelectedGroup, inputRef]);
+    }, [setSelectedGroup, inputRef, models]);
 
     // Update uploadFile function to add more error details
     const uploadFile = async (file: File): Promise<Attachment> => {
@@ -1215,7 +1246,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
             setUploadQueue([]);
             event.target.value = '';
         }
-    }, [attachments, setAttachments, selectedModel, setSelectedModel]);
+    }, [attachments, setAttachments, selectedModel, setSelectedModel, models]);
 
     const removeAttachment = (index: number) => {
         setAttachments(prev => prev.filter((_, i) => i !== index));
@@ -1815,20 +1846,29 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                             messages={messages}
                                             status={status}
                                             onModelSelect={(model) => {
-                                                // Show additional info about image attachments for vision models
-                                                const isVisionModel = model.vision === true;
-                                                showSwitchNotification(
-                                                    model.label,
-                                                    isVisionModel
-                                                        ? 'Vision model enabled - you can now attach images and PDFs'
-                                                        : model.description,
-                                                    typeof model.icon === 'string' ?
-                                                        <img src={model.icon} alt={model.label} className="size-4 object-contain" /> :
-                                                        <model.icon className="size-4" />,
-                                                    model.color,
-                                                    'model'  // Explicitly mark as model notification
-                                                );
-                                            }}
+												// Show additional info about image attachments for vision models
+												const isVisionModel = model.vision === true;
+												let message = "";
+												
+												if (isVisionModel) {
+													message = model.pdf 
+														? t("Vision model enabled - you can now attach images and PDFs")
+														: t("Vision model enabled - you can now attach images");
+												} else {
+													// For non-vision models, use the model's description which is already translated
+													message = model.description;
+												}
+												
+												showSwitchNotification(
+													model.label,
+													message,
+													typeof model.icon === 'string' ?
+														<img src={model.icon} alt={model.label} className="size-4 object-contain" /> :
+														<model.icon className="size-4" />,
+													model.color,
+													'model'  // Explicitly mark as model notification
+												);
+											}}
                                         />
                                     </div>
 
