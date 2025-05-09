@@ -547,36 +547,36 @@ export default function AboutPage() {
 								{[
 									{
 										icon: Brain,
-										title: "Smart Understanding",
+										title: t("Smart Understanding"),
 										description:
-											"Uses multiple AI models to better understand your questions",
+											t("Uses multiple AI models to better understand your questions"),
 									},
 									{
 										icon: Search,
-										title: "Comprehensive Search",
+										title: t("Comprehensive Search"),
 										description:
-											"Searches across multiple sources for complete answers",
+											t("Searches across multiple sources for complete answers"),
 									},
 									{
 										icon: Image,
-										title: "Image Understanding",
-										description: "Can understand and explain images you share",
+										title: t("Image Understanding"),
+										description: t("Can understand and explain images you share"),
 									},
 									{
 										icon: Command,
-										title: "Smart Calculations",
+										title: t("Smart Calculations"),
 										description:
-											"Performs complex calculations and analysis in real-time",
+											t("Performs complex calculations and analysis in real-time"),
 									},
 									{
 										icon: GraduationCap,
-										title: "Research Assistant",
-										description: "Helps find and explain academic research",
+										title: t("Research Assistant"),
+										description: t("Helps find and explain academic research"),
 									},
 									{
 										icon: Sparkles,
-										title: "Natural Conversations",
-										description: "Responds in a clear, conversational way",
+										title: t("Natural Conversations"),
+										description: t("Responds in a clear, conversational way"),
 									},
 								].map((feature, i) => (
 									<motion.div
@@ -590,10 +590,10 @@ export default function AboutPage() {
 											</div>
 											<div className="space-y-2">
 												<h3 className="text-xl font-semibold">
-													{t(feature.title)}
+													{feature.title}
 												</h3>
 												<p className="text-neutral-600 dark:text-neutral-400">
-													{t(feature.description)}
+													{feature.description}
 												</p>
 											</div>
 										</div>

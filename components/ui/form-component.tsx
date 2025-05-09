@@ -14,7 +14,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn, SearchGroup, SearchGroupId, searchGroups } from '@/lib/utils';
+import { cn, SearchGroup, searchGroups } from '@/lib/utils';
 import { Upload } from 'lucide-react';
 import { UIMessage } from '@ai-sdk/ui-utils';
 import { Globe } from 'lucide-react';
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useGT } from "gt-next/client";
 import { Plural, T, Var } from 'gt-next';
+import { useTranslatedGroupInfo, type SearchGroupId } from '../search-groups';
 
 interface ModelSwitcherProps {
     selectedModel: string;
@@ -773,10 +774,10 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
 };
 
 const ToolbarButton = ({ group, isSelected, onClick }: ToolbarButtonProps) => {
-	const t = useGT();
     const Icon = group.icon;
     const { width } = useWindowSize();
     const isMobile = width ? width < 768 : false;
+	const { name, description } = useTranslatedGroupInfo()[group.id];
 
     const commonClassNames = cn(
         "relative flex items-center justify-center",
@@ -826,8 +827,8 @@ const ToolbarButton = ({ group, isSelected, onClick }: ToolbarButtonProps) => {
                 className=" border-0 shadow-lg backdrop-blur-xs py-2 px-3 max-w-[200px]"
             >
                 <div className="flex flex-col gap-0.5">
-                    <span className="font-medium text-[11px]">{group.name}</span>
-                    <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">{t(group.description)}</span>
+                    <span className="font-medium text-[11px]">{name}</span>
+                    <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">{description}</span>
                 </div>
             </TooltipContent>
         </Tooltip>
@@ -970,6 +971,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
         visibilityTimeout: undefined
     });
 	const t = useGT();
+	const translatedGroupInfo = useTranslatedGroupInfo();
 
     const showSwitchNotification = (title: string, description: string, icon?: React.ReactNode, color?: string, type: 'model' | 'group' = 'model') => {
         // Clear any existing timeout to prevent conflicts
@@ -1034,8 +1036,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
         inputRef.current?.focus();
 
         showSwitchNotification(
-            group.name,
-            group.description,
+            translatedGroupInfo[group.id as SearchGroupId].name,
+            translatedGroupInfo[group.id as SearchGroupId].description,
             <group.icon className="size-4" />,
             group.id, // Use the group ID directly as the color code
             'group'   // Specify this is a group notification
