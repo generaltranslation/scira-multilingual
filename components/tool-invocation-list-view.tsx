@@ -77,7 +77,7 @@ import MCPServerList from "@/components/mcp-server-list";
 import RedditSearch from "@/components/reddit-search";
 
 // Actions
-import { generateSpeech } from "@/app/actions";
+import { generateSpeech } from "@/app/[locale]/actions";
 import Image from "next/image";
 
 // Interfaces

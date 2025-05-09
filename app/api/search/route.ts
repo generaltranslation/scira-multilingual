@@ -1,5 +1,5 @@
 // /app/api/chat/route.ts
-import { getGroupConfig } from '@/app/actions';
+import { getGroupConfig } from '@/app/[locale]/actions';
 import { serverEnv } from '@/env/server';
 import { xai } from '@ai-sdk/xai';
 import { groq } from "@ai-sdk/groq";
