@@ -6,9 +6,12 @@ import { SearchGroupId } from '@/lib/utils';
 import { openai } from '@ai-sdk/openai';
 import { generateObject } from 'ai';
 import { z } from 'zod';
+import { getLocale } from 'gt-next/server';
 
 export async function suggestQuestions(history: any[]) {
   'use server';
+
+  const locale = await getLocale();
 
   console.log(history);
 
@@ -47,6 +50,7 @@ export async function suggestQuestions(history: any[]) {
 - For current events → Generate questions that explore implications, background, or related topics
 
 ### Formatting Requirements:
+- Please use the following language: ${locale}
 - No bullet points, numbering, or prefixes
 - No quotation marks around questions
 - Each question must be grammatically complete
@@ -140,7 +144,7 @@ const groupTools = {
   ] as const,
   buddy: [] as const,
   academic: ['academic_search', 'code_interpreter', 'datetime'] as const,
-  youtube: ['youtube_search', 'datetime'] as const,
+  youtube: ['datetime'] as const,
   reddit: ['reddit_search', 'datetime'] as const,
   analysis: ['code_interpreter', 'stock_chart', 'currency_converter', 'datetime'] as const,
   chat: [] as const,
@@ -675,8 +679,10 @@ const groupPrompts = {
 
 export async function getGroupConfig(groupId: SearchGroupId = 'web') {
   "use server";
+
+  const locale = await getLocale();
   const tools = groupTools[groupId];
-  const instructions = groupInstructions[groupId];
+  const instructions = groupInstructions[groupId] + "\nPlease use the following language: " + locale;
   
   return {
     tools,

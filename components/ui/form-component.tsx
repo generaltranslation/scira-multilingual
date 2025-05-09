@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 // /components/ui/form-component.tsx
 import React, { useState, useRef, useCallback, useEffect, SVGProps } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ChatRequestOptions, CreateMessage, Message } from 'ai';
 import { toast } from 'sonner';
 import { Button } from '../ui/button';
@@ -14,7 +14,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { cn, SearchGroup, SearchGroupId, searchGroups } from '@/lib/utils';
+import { cn, SearchGroup, searchGroups } from '@/lib/utils';
 import { Upload } from 'lucide-react';
 import { UIMessage } from '@ai-sdk/ui-utils';
 import { Globe } from 'lucide-react';
@@ -26,7 +26,23 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CheckIcon } from '@radix-ui/react-icons';
+import { useGT } from "gt-next/client";
+import { Plural, T, Var } from 'gt-next';
+import { useTranslatedGroupInfo, type SearchGroupId } from '../search-groups';
+
+interface ModelType {
+    value: string;
+    label: string;
+    icon: React.FC<any>;
+    iconClass: string;
+    description: string;
+    color: string;
+    vision: boolean;
+    reasoning: boolean;
+    experimental: boolean;
+    category: string;
+    pdf: boolean;
+}
 
 interface ModelSwitcherProps {
     selectedModel: string;
@@ -36,8 +52,9 @@ interface ModelSwitcherProps {
     attachments: Array<Attachment>;
     messages: Array<Message>;
     status: 'submitted' | 'streaming' | 'ready' | 'error';
-    onModelSelect?: (model: typeof models[0]) => void;
+    onModelSelect?: (model: ModelType) => void;
 }
+
 
 const XAIIcon = ({ className }: { className?: string }) => (
     <svg
@@ -93,16 +110,14 @@ const AnthropicIcon = (props: SVGProps<SVGSVGElement>) => <svg fill="currentColo
   lineHeight: 1
 }} viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg" height="1em" {...props}><title>{"Anthropic"}</title><path d="M13.827 3.52h3.603L24 20h-3.603l-6.57-16.48zm-7.258 0h3.767L16.906 20h-3.674l-1.343-3.461H5.017l-1.344 3.46H0L6.57 3.522zm4.132 9.959L8.453 7.687 6.205 13.48H10.7z" /></svg>;
 
+const GroqIcon = (props: SVGProps<SVGSVGElement>) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 201 201" width="1em" height="1em" {...props}><path fill="#F54F35" d="M0 0h201v201H0V0Z" /><path fill="#FEFBFB" d="m128 49 1.895 1.52C136.336 56.288 140.602 64.49 142 73c.097 1.823.148 3.648.161 5.474l.03 3.247.012 3.482.017 3.613c.01 2.522.016 5.044.02 7.565.01 3.84.041 7.68.072 11.521.007 2.455.012 4.91.016 7.364l.038 3.457c-.033 11.717-3.373 21.83-11.475 30.547-4.552 4.23-9.148 7.372-14.891 9.73l-2.387 1.055c-9.275 3.355-20.3 2.397-29.379-1.13-5.016-2.38-9.156-5.17-13.234-8.925 3.678-4.526 7.41-8.394 12-12l3.063 2.375c5.572 3.958 11.135 5.211 17.937 4.625 6.96-1.384 12.455-4.502 17-10 4.174-6.784 4.59-12.222 4.531-20.094l.012-3.473c.003-2.414-.005-4.827-.022-7.241-.02-3.68 0-7.36.026-11.04-.003-2.353-.008-4.705-.016-7.058l.025-3.312c-.098-7.996-1.732-13.21-6.681-19.47-6.786-5.458-13.105-8.211-21.914-7.792-7.327 1.188-13.278 4.7-17.777 10.601C75.472 72.012 73.86 78.07 75 85c2.191 7.547 5.019 13.948 12 18 5.848 3.061 10.892 3.523 17.438 3.688l2.794.103c2.256.082 4.512.147 6.768.209v16c-16.682.673-29.615.654-42.852-10.848-8.28-8.296-13.338-19.55-13.71-31.277.394-9.87 3.93-17.894 9.562-25.875l1.688-2.563C84.698 35.563 110.05 34.436 128 49Z" /></svg>;
+
 const models = [
-    { value: "scira-default", label: "Grok 3.0 Mini", icon: XAIIcon, iconClass: "text-current", description: "xAI's most efficient reasoning model", color: "black", vision: false, reasoning: true, experimental: false, category: "Stable", pdf: false },
-    { value: "scira-grok-3", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: "xAI's most intelligent model", color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
+    { value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: "xAI's most intelligent model", color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
     { value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: "xAI's advanced vision model", color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
     { value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: "Anthropic's most advanced reasoning model", color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
-    { value: "scira-google", label: "Gemini 2.5 Flash (Preview)", icon: GeminiIcon, iconClass: "text-current", description: "Google's advanced small reasoning model", color: "gemini", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
-    { value: "scira-google-pro", label: "Gemini 2.5 Pro (Preview)", icon: GeminiIcon, iconClass: "text-current", description: "Google's advanced reasoning model", color: "gemini", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
     { value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: "OpenAI's flagship model", color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
     { value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: "OpenAI's faster mini reasoning model", color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
-    { value: "scira-qwq", label: "QWQ 32B", icon: QwenIcon, iconClass: "text-current", description: "Alibaba's advanced reasoning model", color: "purple", vision: false, reasoning: true, experimental: true, category: "Experimental", pdf: false },
 ];
 
 const getColorClasses = (color: string, isSelected: boolean = false) => {
@@ -149,7 +164,17 @@ const getColorClasses = (color: string, isSelected: boolean = false) => {
     }
 }
 
+
 const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelectedModel, className, showExperimentalModels, attachments, messages, status, onModelSelect }) => {
+	const t = useGT();
+
+	const models: ModelType[] = [
+		{ value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: t("xAI's most intelligent model"), color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
+		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
+	];
     const selectedModelData = models.find(model => model.value === selectedModel);
     const [isOpen, setIsOpen] = useState(false);
     const isProcessing = status === 'submitted' || status === 'streaming';
@@ -366,7 +391,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                             getCapabilityColors("vision")
                                                         )}>
                                                             <EyeIcon className="size-2.5" />
-                                                            <span>Vision</span>
+                                                            <span>{t("Vision")}</span>
                                                         </div>
                                                     )}
                                                     {model.reasoning && (
@@ -375,7 +400,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                             getCapabilityColors("reasoning")
                                                         )}>
                                                             <BrainCircuit className="size-2.5" />
-                                                            <span>Reasoning</span>
+                                                            <span>{t("Reasoning")}</span>
                                                         </div>
                                                     )}
                                                     {model.pdf && (
@@ -387,7 +412,7 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
                                                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                                                 <polyline points="14 2 14 8 20 8"></polyline>
                                                             </svg>
-                                                            <span>PDF</span>
+                                                            <span>{t("PDF")}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -691,6 +716,8 @@ const SwitchNotification: React.FC<SwitchNotificationProps> = ({
 }) => {
     // Icon color is always white for better contrast on colored backgrounds
     const getIconColorClass = () => "text-white";
+	const t = useGT();
+	
 
     // Get background color for model notifications only
     const getModelBgClass = (color: string) => {
@@ -774,6 +801,7 @@ const ToolbarButton = ({ group, isSelected, onClick }: ToolbarButtonProps) => {
     const Icon = group.icon;
     const { width } = useWindowSize();
     const isMobile = width ? width < 768 : false;
+	const { name, description } = useTranslatedGroupInfo()[group.id];
 
     const commonClassNames = cn(
         "relative flex items-center justify-center",
@@ -823,8 +851,8 @@ const ToolbarButton = ({ group, isSelected, onClick }: ToolbarButtonProps) => {
                 className=" border-0 shadow-lg backdrop-blur-xs py-2 px-3 max-w-[200px]"
             >
                 <div className="flex flex-col gap-0.5">
-                    <span className="font-medium text-[11px]">{group.name}</span>
-                    <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">{group.description}</span>
+                    <span className="font-medium text-[11px]">{name}</span>
+                    <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">{description}</span>
                 </div>
             </TooltipContent>
         </Tooltip>
@@ -966,6 +994,15 @@ const FormComponent: React.FC<FormComponentProps> = ({
         notificationType: 'model',
         visibilityTimeout: undefined
     });
+	const t = useGT();
+	const translatedGroupInfo = useTranslatedGroupInfo();
+	const models = [
+		{ value: "scira-default", label: "Grok 3.0", icon: XAIIcon, iconClass: "text-current", description: t("xAI's most intelligent model"), color: "gray", vision: false, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
+		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
+		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
+	];
 
     const showSwitchNotification = (title: string, description: string, icon?: React.ReactNode, color?: string, type: 'model' | 'group' = 'model') => {
         // Clear any existing timeout to prevent conflicts
@@ -1007,7 +1044,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
         // Check if input exceeds character limit
         if (newValue.length > MAX_INPUT_CHARS) {
             setInput(newValue);
-            toast.error(`Your input exceeds the maximum of ${MAX_INPUT_CHARS} characters.`);
+            toast.error(
+				<T id="error.max_chars">
+				  Your input exceeds the maximum of <Var>{MAX_INPUT_CHARS}</Var> characters.
+				</T>
+			  );
         } else {
             setInput(newValue);
         }
@@ -1026,13 +1067,13 @@ const FormComponent: React.FC<FormComponentProps> = ({
         inputRef.current?.focus();
 
         showSwitchNotification(
-            group.name,
-            group.description,
+            translatedGroupInfo[group.id as SearchGroupId].name,
+            translatedGroupInfo[group.id as SearchGroupId].description,
             <group.icon className="size-4" />,
             group.id, // Use the group ID directly as the color code
             'group'   // Specify this is a group notification
         );
-    }, [setSelectedGroup, inputRef]);
+    }, [setSelectedGroup, inputRef, models]);
 
     // Update uploadFile function to add more error details
     const uploadFile = async (file: File): Promise<Attachment> => {
@@ -1057,7 +1098,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
             }
         } catch (error) {
             console.error("Error uploading file:", error);
-            toast.error(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(
+				<T id="error.upload_failed">
+				  Failed to upload <Var>{file.name}</Var>: <Var>{error instanceof Error ? error.message : "Unknown error"}</Var>
+				</T>
+			  );
             throw error;
         }
     };
@@ -1089,7 +1134,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
         
         if (unsupportedFiles.length > 0) {
             console.log("Unsupported files:", unsupportedFiles.map(f => `${f.name} (${f.type})`));
-            toast.error(`Some files are not supported: ${unsupportedFiles.map(f => f.name).join(', ')}`);
+            toast.error(
+				<T id="error.unsupported_files_1">
+				  Some files are not supported: <Var>{unsupportedFiles.map(f => f.name).join(', ')}</Var>
+				</T>
+			  );
         }
         
         if (imageFiles.length === 0 && pdfFiles.length === 0) {
@@ -1120,7 +1169,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 );
             } else {
                 console.warn("No PDF-compatible model found");
-                toast.error("PDFs are only supported by Gemini and Claude models");
+                toast.error(t("PDFs are only supported by Gemini and Claude models"));
                 // Continue with only image files
                 if (imageFiles.length === 0) {
                     event.target.value = '';
@@ -1139,7 +1188,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
         
         const totalAttachments = attachments.length + validFiles.length;
         if (totalAttachments > MAX_FILES) {
-            toast.error(`You can only attach up to ${MAX_FILES} files.`);
+            toast.error(
+				<T id="error.max_files_1">
+				  You can only attach up to <Var>{MAX_FILES}</Var> files.
+				</T>
+			  );
             event.target.value = '';
             return;
         }
@@ -1176,18 +1229,24 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 ...uploadedAttachments,
             ]);
                 
-                toast.success(`${uploadedAttachments.length} file${uploadedAttachments.length > 1 ? 's' : ''} uploaded successfully`);
+			toast.success(
+				<Plural
+				  n={uploadedAttachments.length}
+				  one={<>1 file uploaded successfully</>}
+				  other={<><Var>{uploadedAttachments.length}</Var> files uploaded successfully</>}
+				/>
+			  );
             } else {
-                toast.error("No files were successfully uploaded");
+                toast.error(t("No files were successfully uploaded"));
             }
         } catch (error) {
             console.error("Error uploading files!", error);
-            toast.error("Failed to upload one or more files. Please try again.");
+            toast.error(t("Failed to upload one or more files. Please try again."));
         } finally {
             setUploadQueue([]);
             event.target.value = '';
         }
-    }, [attachments, setAttachments, selectedModel, setSelectedModel]);
+    }, [attachments, setAttachments, selectedModel, setSelectedModel, models]);
 
     const removeAttachment = (index: number) => {
         setAttachments(prev => prev.filter((_, i) => i !== index));
@@ -1231,13 +1290,16 @@ const FormComponent: React.FC<FormComponentProps> = ({
         console.log("Raw files dropped:", allFiles.map(f => `${f.name} (${f.type})`));
 
         if (allFiles.length === 0) {
-            toast.error("No files detected in drop");
+            toast.error(t("No files detected in drop"));
             return;
         }
 
         // Simple verification to ensure we're actually getting Files from the drop
-        toast.info(`Detected ${allFiles.length} dropped files`);
-
+        toast.info(
+			<T id="info.detected_files">
+			  Detected <Var>{allFiles.length}</Var> dropped files
+			</T>
+		  );
         // First, separate images and PDFs
         const imageFiles: File[] = [];
         const pdfFiles: File[] = [];
@@ -1258,12 +1320,16 @@ const FormComponent: React.FC<FormComponentProps> = ({
         
         if (unsupportedFiles.length > 0) {
             console.log("Unsupported files:", unsupportedFiles.map(f => `${f.name} (${f.type})`));
-            toast.error(`Some files not supported: ${unsupportedFiles.map(f => f.name).join(', ')}`);
+            toast.error(
+				<T id="error.unsupported_files_2">
+				  Some files not supported: <Var>{unsupportedFiles.map(f => f.name).join(', ')}</Var>
+				</T>
+			  );
         }
 
         // Check if we have any supported files
         if (imageFiles.length === 0 && pdfFiles.length === 0) {
-            toast.error("Only image and PDF files are supported");
+            toast.error(t("Only image and PDF files are supported"));
             return;
         }
 
@@ -1278,7 +1344,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
             if (compatibleModel) {
                 console.log("Switching to compatible model:", compatibleModel.value);
                 setSelectedModel(compatibleModel.value);
-                toast.info(`Switching to ${compatibleModel.label} to support PDF files`);
+                toast.info(
+					<T id="info.switching_model">
+					  Switching to <Var>{compatibleModel.label}</Var> to support PDF files
+					</T>
+				  );
                 showSwitchNotification(
                     compatibleModel.label,
                     'Switched to a model that supports PDF documents',
@@ -1289,8 +1359,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
                     'model'
                 );
             } else {
-                console.warn("No PDF-compatible model found");
-                toast.error("PDFs are only supported by Gemini and Claude models");
+                console.warn(t("No PDF-compatible model found"));
+                toast.error(t("PDFs are only supported by Gemini and Claude models"));
                 // Continue with only image files
                 if (imageFiles.length === 0) return;
             }
@@ -1307,13 +1377,17 @@ const FormComponent: React.FC<FormComponentProps> = ({
         // Check total attachment count
         const totalAttachments = attachments.length + validFiles.length;
         if (totalAttachments > MAX_FILES) {
-            toast.error(`You can only attach up to ${MAX_FILES} files.`);
+            toast.error(	
+				<T id="error.max_files_2">
+				  You can only attach up to <Var>{MAX_FILES}</Var> files.
+				</T>
+			  );
             return;
         }
 
         if (validFiles.length === 0) {
-            console.error("No valid files to upload after filtering");
-            toast.error("No valid files to upload");
+            console.error(t("No valid files to upload after filtering"));
+            toast.error(t("No valid files to upload"));
             return;
         }
 
@@ -1353,7 +1427,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
 
         // Set upload queue immediately
         setUploadQueue(validFiles.map((file) => file.name));
-        toast.info(`Starting upload of ${validFiles.length} files...`);
+        toast.info(
+			<T id="info.starting_upload">
+			  Starting upload of <Var>{validFiles.length}</Var> files...
+			</T>
+		  );
 
         // Forced timeout to ensure state updates before upload starts
         setTimeout(async () => {
@@ -1381,13 +1459,19 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 ...uploadedAttachments,
             ]);
                     
-                    toast.success(`${uploadedAttachments.length} file${uploadedAttachments.length > 1 ? 's' : ''} uploaded successfully`);
+                    toast.success(
+						<Plural
+				  n={uploadedAttachments.length}
+				  one={<>1 file uploaded successfully</>}
+				  other={<><Var>{uploadedAttachments.length}</Var> files uploaded successfully</>}
+				/>
+					);
                 } else {
-                    toast.error("No files were successfully uploaded");
+                    toast.error(t("No files were successfully uploaded"));
                 }
         } catch (error) {
                 console.error("Error during file upload:", error);
-                toast.error("Upload failed. Please check console for details.");
+                toast.error(t("Upload failed. Please check console for details."));
         } finally {
             setUploadQueue([]);
         }
@@ -1406,7 +1490,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
 
         const totalAttachments = attachments.length + imageItems.length;
         if (totalAttachments > MAX_FILES) {
-            toast.error(`You can only attach up to ${MAX_FILES} files.`);
+            toast.error(
+				<T id="error.max_files_3">
+				  You can only attach up to <Var>{MAX_FILES}</Var> files.
+				</T>
+			  );
             return;
         }
 
@@ -1421,7 +1509,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 const supportsPdfs = supportsPdfAttachments(visionModel);
                 showSwitchNotification(
                     modelData.label,
-                    `Vision model enabled - you can now attach images${supportsPdfs ? ' and PDFs' : ''}`,
+                    t("Vision model enabled - you can now attach images and potentially PDFs"),
                     typeof modelData.icon === 'string' ?
                         <img src={modelData.icon} alt={modelData.label} className="size-4 object-contain" /> :
                         <modelData.icon className="size-4" />,
@@ -1443,10 +1531,10 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 ...uploadedAttachments,
             ]);
 
-            toast.success('Image pasted successfully');
+            toast.success(t("Image pasted successfully"));
         } catch (error) {
             console.error("Error uploading pasted files!", error);
-            toast.error("Failed to upload pasted image. Please try again.");
+            toast.error(t("Failed to upload pasted image. Please try again."));
         } finally {
             setUploadQueue([]);
         }
@@ -1472,13 +1560,17 @@ const FormComponent: React.FC<FormComponentProps> = ({
         event.stopPropagation();
 
         if (status !== 'ready') {
-            toast.error("Please wait for the current response to complete!");
+            toast.error(t("Please wait for the current response to complete!"));
             return;
         }
 
         // Check if input exceeds character limit
         if (input.length > MAX_INPUT_CHARS) {
-            toast.error(`Your input exceeds the maximum of ${MAX_INPUT_CHARS} characters. Please shorten your message.`);
+            toast.error(
+				<T id="error.input_too_long">
+				  Your input exceeds the maximum of <Var>{MAX_INPUT_CHARS}</Var> characters. Please shorten your message.
+				</T>
+			  );
             return;
         }
 
@@ -1498,7 +1590,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                 fileInputRef.current.value = '';
             }
         } else {
-            toast.error("Please enter a search query or attach an image.");
+            toast.error(t("Please enter a search query or attach an image."));
         }
     }, [input, attachments, handleSubmit, setAttachments, fileInputRef, lastSubmittedQueryRef, status, selectedModel, setHasSubmitted]);
 
@@ -1513,7 +1605,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
 
     const triggerFileInput = useCallback(() => {
         if (attachments.length >= MAX_FILES) {
-            toast.error(`You can only attach up to ${MAX_FILES} images.`);
+            toast.error(
+				<T id="error.max_files_images">
+				  You can only attach up to <Var>{MAX_FILES}</Var> images.
+				</T>
+			  );
             return;
         }
 
@@ -1528,7 +1624,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
         if (event.key === "Enter" && !event.shiftKey && !isCompositionActive.current) {
             event.preventDefault();
             if (status === 'submitted' || status === 'streaming') {
-                toast.error("Please wait for the response to complete!");
+                toast.error(t("Please wait for the response to complete!"));
             } else {
                 submitForm();
                 if (width && width > 768) {
@@ -1648,7 +1744,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                         <div className="relative rounded-lg bg-neutral-100 dark:bg-neutral-900">
                             <Textarea
                                 ref={inputRef}
-                                placeholder={hasInteracted ? "Ask a new question..." : "Ask a question..."}
+                                placeholder={hasInteracted ? t("Ask a new question...") : t("Ask a question...")}
                                 value={input}
                                 onChange={handleInput}
                                 disabled={isProcessing}
@@ -1750,20 +1846,29 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                             messages={messages}
                                             status={status}
                                             onModelSelect={(model) => {
-                                                // Show additional info about image attachments for vision models
-                                                const isVisionModel = model.vision === true;
-                                                showSwitchNotification(
-                                                    model.label,
-                                                    isVisionModel
-                                                        ? 'Vision model enabled - you can now attach images and PDFs'
-                                                        : model.description,
-                                                    typeof model.icon === 'string' ?
-                                                        <img src={model.icon} alt={model.label} className="size-4 object-contain" /> :
-                                                        <model.icon className="size-4" />,
-                                                    model.color,
-                                                    'model'  // Explicitly mark as model notification
-                                                );
-                                            }}
+												// Show additional info about image attachments for vision models
+												const isVisionModel = model.vision === true;
+												let message = "";
+												
+												if (isVisionModel) {
+													message = model.pdf 
+														? t("Vision model enabled - you can now attach images and PDFs")
+														: t("Vision model enabled - you can now attach images");
+												} else {
+													// For non-vision models, use the model's description which is already translated
+													message = model.description;
+												}
+												
+												showSwitchNotification(
+													model.label,
+													message,
+													typeof model.icon === 'string' ?
+														<img src={model.icon} alt={model.label} className="size-4 object-contain" /> :
+														<model.icon className="size-4" />,
+													model.color,
+													'model'  // Explicitly mark as model notification
+												);
+											}}
                                         />
                                     </div>
 
@@ -1784,10 +1889,10 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                             setSelectedGroup(newMode);
 
                                                             // Enhanced notification messages
-                                                            const newModeText = selectedGroup === 'extreme' ? 'Switched to Web Search' : 'Switched to Extreme Mode';
+                                                            const newModeText = selectedGroup === 'extreme' ? t('Switched to Web Search') : t('Switched to Extreme Mode');
                                                             const description = selectedGroup === 'extreme'
-                                                                ? 'Standard web search mode is now active'
-                                                                : 'Enhanced deep research mode is now active';
+                                                                ? t('Standard web search mode is now active')
+                                                                : t('Enhanced deep research mode is now active');
 
                                                             // Use appropriate colors for groups that don't conflict with model colors
                                                             showSwitchNotification(
@@ -1809,7 +1914,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                         )}
                                                     >
                                                         <TelescopeIcon className="h-3.5 w-3.5" />
-                                                        <span className="hidden sm:block text-xs font-medium">Extreme</span>
+                                                        <span className="hidden sm:block text-xs font-medium">{t('Extreme')}</span>
                                                     </button>
                                                 </TooltipTrigger>
                                                 <TooltipContent
@@ -1818,8 +1923,8 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                     className=" border-0 shadow-lg backdrop-blur-xs py-2 px-3 max-w-[200px]"
                                                 >
                                                     <div className="flex flex-col gap-0.5">
-                                                        <span className="font-medium text-[11px]">Extreme Mode</span>
-                                                        <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">Deep research with multiple sources and analysis</span>
+                                                        <span className="font-medium text-[11px]">{t("Extreme Mode")}</span>
+                                                        <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">{t("Deep research with multiple sources and analysis")}</span>
                                                     </div>
                                                 </TooltipContent>
                                             </Tooltip>
@@ -1832,10 +1937,10 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                     setSelectedGroup(newMode);
 
                                                     // Enhanced notification messages
-                                                    const newModeText = selectedGroup === 'extreme' ? 'Switched to Web Search' : 'Switched to Extreme Mode';
+                                                    const newModeText = selectedGroup === 'extreme' ? t('Switched to Web Search') : t('Switched to Extreme Mode');
                                                     const description = selectedGroup === 'extreme'
-                                                        ? 'Standard web search mode is now active'
-                                                        : 'Enhanced deep research mode is now active';
+                                                        ? t('Standard web search mode is now active')
+                                                        : t('Enhanced deep research mode is now active');
 
                                                     // Use appropriate colors for groups that don't conflict with model colors
                                                     showSwitchNotification(
@@ -1857,7 +1962,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                 )}
                                             >
                                                 <TelescopeIcon className="h-3.5 w-3.5" />
-                                                <span className="hidden sm:block text-xs font-medium">Extreme</span>
+                                                <span className="hidden sm:block text-xs font-medium">{t("Extreme")}</span>
                                             </button>
                                         )}
                                     </div>
@@ -1897,11 +2002,11 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                     className=" border-0 shadow-lg backdrop-blur-xs py-2 px-3"
                                                 >
                                                     <div className="flex flex-col gap-0.5">
-                                                        <span className="font-medium text-[11px]">Attach File</span>
+                                                        <span className="font-medium text-[11px]">{t("Attach File")}</span>
                                                         <span className="text-[10px] text-neutral-300 dark:text-neutral-600 leading-tight">
                                                             {supportsPdfAttachments(selectedModel) 
-                                                                ? "Upload an image or PDF document" 
-                                                                : "Upload an image"}
+                                                                ? t("Upload an image or PDF document") 
+                                                                : t("Upload an image")}
                                                         </span>
                                                     </div>
                                                 </TooltipContent>
@@ -1943,7 +2048,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                     sideOffset={6}
                                                     className="border-0 shadow-lg backdrop-blur-xs py-2 px-3"
                                                 >
-                                                    <span className="font-medium text-[11px]">Stop Generation</span>
+                                                    <span className="font-medium text-[11px]">{t("Stop Generation")}</span>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (
@@ -1980,7 +2085,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                     sideOffset={6}
                                                     className="border-0 shadow-lg backdrop-blur-xs py-2 px-3"
                                                 >
-                                                    <span className="font-medium text-[11px]">Send Message</span>
+                                                    <span className="font-medium text-[11px]">{t("Send Message")}</span>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (
