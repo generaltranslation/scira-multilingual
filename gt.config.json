@@ -1,10 +1,19 @@
 {
-  "defaultLocale": "en",
+  "defaultLocale": "en-US",
   "locales": [
     "es",
     "zh",
     "ru",
-    "hi"
+    "hi",
+    "ar",
+    "bn",
+    "de",
+    "fr",
+    "gu",
+    "ja",
+    "mn",
+    "vi",
+    "en-GB"
   ],
   "_versionId": "a8b75c9a112a466f0d233d2757c318fb923f0fb612368db63886eb44354ab043"
 }
