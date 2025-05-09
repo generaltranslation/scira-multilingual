@@ -1914,7 +1914,7 @@ const FormComponent: React.FC<FormComponentProps> = ({
                                                         )}
                                                     >
                                                         <TelescopeIcon className="h-3.5 w-3.5" />
-                                                        <span className="hidden sm:block text-xs font-medium">Extreme</span>
+                                                        <span className="hidden sm:block text-xs font-medium">{t('Extreme')}</span>
                                                     </button>
                                                 </TooltipTrigger>
                                                 <TooltipContent
