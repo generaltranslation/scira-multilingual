@@ -680,10 +680,8 @@ const groupPrompts = {
 export async function getGroupConfig(groupId: SearchGroupId = 'web') {
   "use server";
 
-  const locale = await getLocale();
   const tools = groupTools[groupId];
-  const instructions = groupInstructions[groupId] + "\nPlease use the following language: " + locale;
-  
+  const instructions = groupInstructions[groupId] + "\n\n Please answer in the language of the user query.";
   return {
     tools,
     instructions
