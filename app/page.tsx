@@ -32,7 +32,7 @@ import { useLocalStorage } from "@/hooks/use-local-storage";
 import { cn, getUserId, SearchGroupId } from "@/lib/utils";
 import { suggestQuestions } from "./actions";
 import Messages from "@/components/messages";
-import { T } from "gt-next";
+import { T, Var } from "gt-next";
 import { LocaleSelector, DateTime} from "gt-next/client"
 import { useGT } from "gt-next/client";
 
@@ -125,12 +125,16 @@ const HomeContent = () => {
 			},
 			onError: (error) => {
 				console.error("Chat error:", error.cause, error.message);
-				toast.error(t("An error occurred."), {
-					description: t(`Oops! An error occurred while processing your request. ${error.message}`),
+				toast.error(<T id="page.error.generic">An error occurred.</T>, {
+					description: (
+						<T id="page.error.processingRequest">
+							Oops! An error occurred while processing your request. <Var name="message">{error.message}</Var>
+						</T>
+					),
 				});
 			},
 		}),
-		[selectedModel, selectedGroup, userId, t],
+		[selectedModel, selectedGroup, userId],
 	);
 
 	const {

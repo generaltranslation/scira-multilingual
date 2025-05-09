@@ -3,10 +3,66 @@ import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { searchGroups, type SearchGroup } from '@/lib/utils'
 import { cn } from '@/lib/utils'
+import { useGT } from "gt-next/client";
 
 interface SearchGroupsProps {
   selectedGroup: string
   onGroupSelect: (group: SearchGroup) => void
+}
+
+type SearchGroupId = 'web' | 'academic' | 'youtube' | 'reddit' | 'analysis' | 'chat' | 'extreme' | 'buddy';
+
+function TranslatedGroupDescription({ groupId }: { groupId: SearchGroupId }) {
+  const t = useGT();
+  
+  // We use a switch statement to provide static strings for translation
+  // This allows GT to extract these strings at build time
+  switch (groupId) {
+    case 'web':
+      return t('Search across the entire internet');
+    case 'buddy':
+      return t('Your personal memory companion');
+    case 'analysis':
+      return t('Code, stock and currency stuff');
+    case 'chat':
+      return t('Talk to the model directly.');
+    case 'reddit':
+      return t('Search Reddit posts');
+    case 'academic':
+      return t('Search academic papers powered by Exa');
+    case 'youtube':
+      return t('Search YouTube videos powered by Exa');
+    case 'extreme':
+      return t('Deep research with multiple sources and analysis');
+    default:
+      return '';
+  }
+}
+
+// Similarly for group names
+function TranslatedGroupName({ groupId }: { groupId: SearchGroupId }) {
+  const t = useGT();
+  
+  switch (groupId) {
+    case 'web':
+      return t('Web');
+    case 'buddy':
+      return t('Buddy');
+    case 'analysis':
+      return t('Analysis');
+    case 'chat':
+      return t('Chat');
+    case 'reddit':
+      return t('Reddit');
+    case 'academic':
+      return t('Academic');
+    case 'youtube':
+      return t('YouTube');
+    case 'extreme':
+      return t('Extreme');
+    default:
+      return '';
+  }
 }
 
 export function SearchGroups({ selectedGroup, onGroupSelect }: SearchGroupsProps) {
@@ -35,9 +91,11 @@ export function SearchGroups({ selectedGroup, onGroupSelect }: SearchGroupsProps
                   <Icon className="w-6 h-6" />
                 </div>
                 <div className="flex-1">
-                  <CardTitle className="text-lg">{group.name}</CardTitle>
+                  <CardTitle className="text-lg">
+                    <TranslatedGroupName groupId={group.id} />
+                  </CardTitle>
                   <CardDescription className="mt-1">
-                    {group.description}
+                    <TranslatedGroupDescription groupId={group.id} />
                   </CardDescription>
                 </div>
               </div>
