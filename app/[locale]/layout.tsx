@@ -11,6 +11,7 @@ import "./globals.css";
 import { Providers } from "./providers";
 import { getLocale } from "gt-next/server";
 import { GTProvider } from "gt-next";
+import { getLocaleDirection } from "generaltranslation";
 
 export const metadata: Metadata = {
 	metadataBase: new URL("https://scira.ai"),
@@ -74,8 +75,10 @@ const syne = Syne({
 export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
+	const locale = await getLocale();
+	const dir = getLocaleDirection(locale);
 	return (
-		<html suppressHydrationWarning lang={await getLocale()}>
+		<html suppressHydrationWarning lang={locale} dir={dir}>
 			<body
 				className={`${GeistSans.variable} ${syne.variable} font-sans antialiased`}
 				suppressHydrationWarning

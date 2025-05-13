@@ -33,7 +33,7 @@ import { cn, getUserId, SearchGroupId } from "@/lib/utils";
 import { suggestQuestions } from "./actions";
 import Messages from "@/components/messages";
 import { T, Var } from "gt-next";
-import { LocaleSelector, DateTime} from "gt-next/client"
+import { LocaleSelector, DateTime, useLocale} from "gt-next/client"
 import { useGT } from "gt-next/client";
 
 interface Attachment {
@@ -291,7 +291,7 @@ const HomeContent = () => {
 					<div className="flex items-center space-x-4">
 						<Link
 							target="_blank"
-							href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fzaidmukaddam%2Fscira&env=XAI_API_KEY,OPENAI_API_KEY,GROQ_API_KEY,E2B_API_KEY,ELEVENLABS_API_KEY,TAVILY_API_KEY,EXA_API_KEY,TMDB_API_KEY,YT_ENDPOINT,FIRECRAWL_API_KEY,OPENWEATHER_API_KEY,SANDBOX_TEMPLATE_ID,GOOGLE_MAPS_API_KEY,MAPBOX_ACCESS_TOKEN,TRIPADVISOR_API_KEY,AVIATION_STACK_API_KEY,CRON_SECRET,BLOB_READ_WRITE_TOKEN,NEXT_PUBLIC_MAPBOX_TOKEN,NEXT_PUBLIC_POSTHOG_KEY,NEXT_PUBLIC_POSTHOG_HOST,NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,MEM0_API_KEY,MEM0_ORG_ID,MEM0_PROJECT_ID,SMITHERY_API_KEY&envDescription=API%20keys%20and%20configuration%20required%20for%20Scira%20to%20function%20(including%20SMITHERY_API_KEY)"
+							href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fgeneraltranslation%2Fscira-multilingual&env=GT_PROJECT_ID,GT_API_KEY,OPENAI_API_KEY,MEM0_API_KEY,EXA_API_KEY,ANTHROPIC_API_KEY,TAVILY_API_KEY,XAI_API_KEY,E2B_API_KEY,FIRECRAWL_API_KEY"
 							className="flex flex-row gap-2 items-center py-1.5 px-2 rounded-md 
                             bg-accent hover:bg-accent/80
                             backdrop-blur-xs text-foreground shadow-sm text-sm
@@ -321,96 +321,147 @@ const HomeContent = () => {
 		setSuggestedQuestions([]);
 	}, []);
 
-	const WidgetSection = memo(() => {
-		const [currentTime, setCurrentTime] = useState(new Date());
-		const timerRef = useRef<NodeJS.Timeout>();
-		const timeDateQuestion = t("What's the current date and time?");
+const WidgetSection = memo(() => {
+	// Use null as initial state to prevent hydration mismatch
+	const [currentTime, setCurrentTime] = useState<Date | null>(null);
+	const timerRef = useRef<NodeJS.Timeout>();
+	const timeDateQuestion = t("What's the current date and time?");
+	const locale = useLocale(); 
+	
+	const timeZoneRef = useRef<string | null>(null);
+	
+	// Track if component is mounted (client-side)
+	const isMounted = useRef(false);
+  
+	// First effect handles initial client-side setup only
+	useEffect(() => {
+	  // Mark as mounted - we're now client-side
+	  isMounted.current = true;
+	  
+	  // Get client timezone
+	  timeZoneRef.current = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	  
+	  // Set time immediately after component mounts on client
+	  setCurrentTime(new Date());
+	  
+	  return () => {
+		isMounted.current = false;
+	  };
+	}, []);
+	
+	// Second effect sets up the timing synchronization
+	// Only runs after initial client-side render is complete
+	useEffect(() => {
+	  if (!isMounted.current || currentTime === null) return;
 
-		useEffect(() => {
-			// Sync with the nearest second
-			const now = new Date();
-			const delay = 1000 - now.getMilliseconds();
-
-			// Initial sync
-			const timeout = setTimeout(() => {
-				setCurrentTime(new Date());
-
-				// Then start the interval
-				timerRef.current = setInterval(() => {
-					setCurrentTime(new Date());
-				}, 1000);
-			}, delay);
-
-			return () => {
-				clearTimeout(timeout);
-				if (timerRef.current) {
-					clearInterval(timerRef.current);
-				}
-			};
-		}, []);
-
-		const handleDateTimeClick = useCallback(() => {
-			if (status !== "ready") return;
-
-			append({
-				content: timeDateQuestion,
-				role: "user",
-			});
-
-			lastSubmittedQueryRef.current = timeDateQuestion;
-			setHasSubmitted(true);
-		}, [timeDateQuestion]);
-
-		return (
-			<div className="mt-8 w-full">
-				<div className="flex flex-wrap gap-3 justify-center">
-					{/* Time Widget */}
-					<Button
-						variant="outline"
-						className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
-						onClick={handleDateTimeClick}
-					>
-						<PhosphorClock
-							weight="duotone"
-							className="h-5 w-5 text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform"
-						/>
-						<span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">
-							<DateTime options={{ hour: "2-digit", minute: "2-digit" }}>
-								{currentTime}
-							</DateTime>
-						</span>
-					</Button>
-
-					{/* Date Widget */}
-					<Button
-						variant="outline"
-						className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
-						onClick={handleDateTimeClick}
-					>
-						<CalendarBlank
-							weight="duotone"
-							className="h-5 w-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform"
-						/>
-						<span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">
-							<DateTime options={{ weekday: "short", month: "short", day: "numeric" }}>
-								{currentTime}
-							</DateTime>
-						</span>
-					</Button>
-					<Button
-						variant="outline"
-						className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
-					>
-						<Translate
-							weight="duotone"
-							className="h-5 w-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform"
-						/>
-						<LocaleSelector />
-					</Button>
-				</div>
-			</div>
-		);
-	});
+	  const now = new Date();
+	  const delay = 1000 - now.getMilliseconds();
+  
+	  const timeout = setTimeout(() => {
+		if (isMounted.current) {
+		  setCurrentTime(new Date());
+		  
+		  timerRef.current = setInterval(() => {
+			if (isMounted.current) {
+			  setCurrentTime(new Date());
+			}
+		  }, 1000);
+		}
+	  }, delay);
+  
+	  return () => {
+		clearTimeout(timeout);
+		if (timerRef.current) {
+		  clearInterval(timerRef.current);
+		}
+	  };
+	}, [currentTime]);
+	
+	// Force an update to date/time display when locale changes
+	useEffect(() => {
+	  if (isMounted.current) {
+		setCurrentTime(new Date());
+	  }
+	}, [locale]);
+  
+	// Only define handleDateTimeClick once using useCallback
+	const handleDateTimeClick = useCallback(() => {
+	  if (status !== "ready") return;
+  
+	  append({
+		content: timeDateQuestion,
+		role: "user",
+	  });
+  
+	  lastSubmittedQueryRef.current = timeDateQuestion;
+	  setHasSubmitted(true);
+	}, [status, timeDateQuestion, append, lastSubmittedQueryRef, setHasSubmitted]);
+  
+	// If we don't have a current time yet (SSR or early render), show placeholder or skeleton
+	if (currentTime === null) {
+	  return (
+		<div className="mt-8 w-full">
+		  <div className="flex flex-wrap gap-3 justify-center">
+			{/* Placeholder widgets while loading client time */}
+			<div className="h-10 w-24 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse"></div>
+			<div className="h-10 w-32 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse"></div>
+			<div className="h-10 w-28 bg-neutral-100 dark:bg-neutral-800 rounded-full animate-pulse"></div>
+		  </div>
+		</div>
+	  );
+	}
+  
+	return (
+	  <div className="mt-8 w-full">
+		<div className="flex flex-wrap gap-3 justify-center">
+		  {/* Time Widget */}
+		  <Button
+			variant="outline"
+			className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
+			onClick={handleDateTimeClick}
+		  >
+			<PhosphorClock
+			  weight="duotone"
+			  className="h-5 w-5 text-blue-500 dark:text-blue-400 group-hover:scale-110 transition-transform"
+			/>
+			<span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">
+			  {/* Use timeZone property in DateTime options */}
+			  <DateTime options={{ hour: "2-digit", minute: "2-digit", timeZone: timeZoneRef.current || undefined }}>
+				{currentTime}
+			  </DateTime>
+			</span>
+		  </Button>
+  
+		  {/* Date Widget */}
+		  <Button
+			variant="outline"
+			className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
+			onClick={handleDateTimeClick}
+		  >
+			<CalendarBlank
+			  weight="duotone"
+			  className="h-5 w-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform"
+			/>
+			<span className="text-sm text-neutral-700 dark:text-neutral-300 font-medium">
+			  <DateTime options={{ weekday: "short", month: "short", day: "numeric", timeZone: timeZoneRef.current || undefined }}>
+				{currentTime}
+			  </DateTime>
+			</span>
+		  </Button>
+		  <Button
+			variant="outline"
+			className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 hover:shadow-xs transition-all h-auto"
+		  >
+			<Translate
+			  weight="duotone"
+			  className="h-5 w-5 text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform"
+			/>
+			<LocaleSelector />
+		  </Button>
+		</div>
+	  </div>
+	);
+  });
 
 	WidgetSection.displayName = "WidgetSection";
 
@@ -431,44 +482,57 @@ const HomeContent = () => {
 					{status === "ready" && messages.length === 0 && (
 						<T id="page.2">
 							<div className="text-center">
+								<div className="flex justify-center mb-8">
+									<div className="relative group">
+										<div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 rounded-full opacity-75 blur-sm group-hover:opacity-100 transition duration-300"></div>
+										<div className="relative inline-flex items-center gap-2 px-3 py-2 rounded-full bg-white dark:bg-gray-900 backdrop-blur-sm text-black dark:text-white border border-transparent">
+											<a href="https://github.com/generaltranslation/gt" target="_blank" rel="noopener noreferrer" className="text-xs">
+												✨ Translated with GT Libraries
+											</a>
+										</div>
+									</div>
+								</div>
+
 								<h1 className="text-2xl sm:text-4xl mb-4 sm:mb-6 text-neutral-800 dark:text-neutral-100 font-syne!">
 									What do you want to explore?
 								</h1>
 							</div>
 						</T>
-					)}
-					<AnimatePresence>
-						{messages.length === 0 && !hasSubmitted && (
-							<motion.div
-								initial={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: 20 }}
-								transition={{ duration: 0.5 }}
-								className={cn("mt-4!")}
-							>
-								<FormComponent
-									input={input}
-									setInput={setInput}
-									attachments={attachments}
-									setAttachments={setAttachments}
-									handleSubmit={handleSubmit}
-									fileInputRef={fileInputRef}
-									inputRef={inputRef}
-									stop={stop}
-									messages={messages as any}
-									append={append}
-									selectedModel={selectedModel}
-									setSelectedModel={handleModelChange}
-									resetSuggestedQuestions={resetSuggestedQuestions}
-									lastSubmittedQueryRef={lastSubmittedQueryRef}
-									selectedGroup={selectedGroup}
-									setSelectedGroup={setSelectedGroup}
-									showExperimentalModels={true}
-									status={status}
-									setHasSubmitted={setHasSubmitted}
-								/>
-							</motion.div>
-						)}
-					</AnimatePresence>
+					)
+				}
+    
+    <AnimatePresence>
+      {messages.length === 0 && !hasSubmitted && (
+        <motion.div
+          initial={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
+          className={cn("mt-4!")}
+        >
+          <FormComponent
+            input={input}
+            setInput={setInput}
+            attachments={attachments}
+            setAttachments={setAttachments}
+            handleSubmit={handleSubmit}
+            fileInputRef={fileInputRef}
+            inputRef={inputRef}
+            stop={stop}
+            messages={messages as any}
+            append={append}
+            selectedModel={selectedModel}
+            setSelectedModel={handleModelChange}
+            resetSuggestedQuestions={resetSuggestedQuestions}
+            lastSubmittedQueryRef={lastSubmittedQueryRef}
+            selectedGroup={selectedGroup}
+            setSelectedGroup={setSelectedGroup}
+            showExperimentalModels={true}
+            status={status}
+            setHasSubmitted={setHasSubmitted}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
 
 					{/* Add the widget section below form when no messages */}
 					{messages.length === 0 && (
