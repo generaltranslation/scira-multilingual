@@ -79,6 +79,7 @@ import RedditSearch from "@/components/reddit-search";
 // Actions
 import { generateSpeech } from "@/app/[locale]/actions";
 import Image from "next/image";
+import { useGT } from "gt-next/client";
 
 // Interfaces
 
@@ -570,6 +571,7 @@ const ToolInvocationListView = memo(
 		toolInvocations,
 		message,
 	}: { toolInvocations: ToolInvocation[]; message: any }) => {
+		const t = useGT();
 		const renderToolInvocation = useCallback(
 			(toolInvocation: ToolInvocation, index: number) => {
 				const args = JSON.parse(JSON.stringify(toolInvocation.args));
@@ -583,7 +585,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={MapPin}
-								text="Finding locations..."
+								text={t("Finding locations...")}
 								color="blue"
 							/>
 						);
@@ -731,7 +733,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Film}
-								text="Discovering entertainment content..."
+								text={t("Discovering entertainment content...")}
 								color="violet"
 							/>
 						);
@@ -745,7 +747,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Film}
-								text="Loading trending movies..."
+								text={t("Loading trending movies...")}
 								color="blue"
 							/>
 						);
@@ -758,7 +760,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Tv}
-								text="Loading trending TV shows..."
+								text={t("Loading trending TV shows...")}
 								color="blue"
 							/>
 						);
@@ -771,7 +773,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={YoutubeIcon}
-								text="Searching YouTube videos..."
+								text={t("Searching YouTube videos...")}
 								color="red"
 							/>
 						);
@@ -874,7 +876,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Book}
-								text="Searching academic papers..."
+								text={t("Searching academic papers...")}
 								color="violet"
 							/>
 						);
@@ -967,7 +969,7 @@ const ToolInvocationListView = memo(
 					const centerLocation = result.results[0]?.geometry?.location;
 					return (
 						<MapContainer
-							title="Search Results"
+							title={t("Search Results")}
 							center={centerLocation}
 							places={result.results.map((place: any) => ({
 								name: place.name,
@@ -1616,7 +1618,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Memory}
-								text="Managing memories..."
+								text={t("Managing memories...")}
 								color="violet"
 							/>
 						);
@@ -1629,7 +1631,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={Server}
-								text="Searching MCP servers..."
+								text={t("Searching MCP servers...")}
 								color="blue"
 							/>
 						);
@@ -1673,7 +1675,7 @@ const ToolInvocationListView = memo(
 						return (
 							<SearchLoadingState
 								icon={RedditLogo}
-								text="Searching Reddit..."
+								text={t("Searching Reddit...")}
 								color="orange"
 							/>
 						);
@@ -1684,7 +1686,7 @@ const ToolInvocationListView = memo(
 
 				return null;
 			},
-			[message],
+			[message, t],
 		);
 
 		const TranslationTool: React.FC<{
