@@ -117,7 +117,6 @@ const models = [
     { value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: "xAI's advanced vision model", color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
     { value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: "Anthropic's most advanced reasoning model", color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
     { value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: "OpenAI's flagship model", color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
-    { value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: "OpenAI's faster mini reasoning model", color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
 ];
 
 const getColorClasses = (color: string, isSelected: boolean = false) => {
@@ -173,7 +172,6 @@ const ModelSwitcher: React.FC<ModelSwitcherProps> = ({ selectedModel, setSelecte
 		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
 		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
 		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
-		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
 	];
     const selectedModelData = models.find(model => model.value === selectedModel);
     const [isOpen, setIsOpen] = useState(false);
@@ -1001,7 +999,6 @@ const FormComponent: React.FC<FormComponentProps> = ({
 		{ value: "scira-vision", label: "Grok 2.0 Vision", icon: XAIIcon, iconClass: "text-current", description: t("xAI's advanced vision model"), color: "indigo", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
 		{ value: "scira-anthropic", label: "Claude 3.7 Sonnet (Reasoning)", icon: AnthropicIcon, iconClass: "text-current", description: t("Anthropic's most advanced reasoning model"), color: "violet", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: true },
 		{ value: "scira-4o", label: "GPT 4o", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's flagship model"), color: "blue", vision: true, reasoning: false, experimental: false, category: "Stable", pdf: false },
-		{ value: "scira-o4-mini", label: "o4 mini", icon: OpenAIIcon, iconClass: "text-current", description: t("OpenAI's faster mini reasoning model"), color: "blue", vision: true, reasoning: true, experimental: false, category: "Stable", pdf: false },
 	];
 
     const showSwitchNotification = (title: string, description: string, icon?: React.ReactNode, color?: string, type: 'model' | 'group' = 'model') => {

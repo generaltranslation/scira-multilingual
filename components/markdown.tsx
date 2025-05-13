@@ -270,9 +270,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 									<T id="components.markdown.1">
 										<>
 											<WrapText className="h-3 w-3" />
-											<T id="components.markdown.5">
 												<span className="hidden sm:inline">Wrap</span>
-											</T>
 										</>
 									</T>
 								)}
@@ -293,18 +291,14 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
 									<T id="components.markdown.2">
 										<>
 											<Check className="h-3 w-3" />
-											<T id="components.markdown.6">
 												<span className="hidden sm:inline">Copied!</span>
-											</T>
 										</>
 									</T>
 								) : (
 									<T id="components.markdown.3">
 										<>
 											<Copy className="h-3 w-3" />
-											<T id="components.markdown.7">
-												<span className="hidden sm:inline">Copy</span>
-											</T>
+											<span className="hidden sm:inline">Copy</span>
 										</>
 									</T>
 								)}
